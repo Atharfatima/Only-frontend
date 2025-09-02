@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Super SPA — Modern Frontend Template</title>
+  <meta name="description" content="A modern single-page application template using pure HTML, CSS, and JavaScript. Includes dark mode, color themes, hash routing, animations, and reusable components." />
+  <style>
+    /* =============== CSS RESET =============== */
+    *, *::before, *::after { box-sizing: border-box; }
+    * { margin: 0; }
+    html:focus-within { scroll-behavior: smooth; }
+    body { min-height: 100vh; text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; }
+    img, picture, video, canvas, svg { display: block; max-width: 100%; }
+    input, button, textarea, select { font: inherit; }
+    :root {
+      --bg: #0b1020;
+      --card: #111833;
+      --text: #e8ecf3;
+      --muted: #9aa8c7;
+      --border: #24305c;
+      --accent: hsl(222 100% 62%); /* default blue */
+      --accent-weak: hsl(222 100% 76% / .18);
+      --shadow: 0 10px 30px -12px rgba(0,0,0,.6);
+      --radius: 16px;
+      --radius-lg: 22px;
+      --maxw: 1200px;
+    }
+    .theme-light {
+      --bg: #f7f9fc;  --card: #ffffff;  --text: #111827;  --muted: #5b6b8b;  --border: #e5e9f2;  --shadow: 0 10px 30px -12px rgba(0,0,0,.15);
+    }
+
+    /* Accent themes (user selectable) */
+    .hue-blue   { --accent: hsl(222 100% 62%); --accent-weak: hsl(222 100% 62% / .18);} 
+    .hue-purple { --accent: hsl(268 83% 67%); --accent-weak: hsl(268 83% 67% / .18);} 
+    .hue-pink   { --accent: hsl(330 87% 67%); --accent-weak: hsl(330 87% 67% / .18);} 
+    .hue-green  { --accent: hsl(160 84% 40%); --accent-weak: hsl(160 84% 40% / .18);} 
+    .hue-orange { --accent: hsl(22 95% 55%);  --accent-weak: hsl(22 95% 55% / .18);} 
+    .hue-teal   { --accent: hsl(185 72% 45%); --accent-weak: hsl(185 72% 45% / .18);} 
+
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Inter, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji"; background: radial-gradient(1200px 800px at 80% -10%, var(--accent-weak), transparent), radial-gradient(800px 500px at -10% 10%, var(--accent-weak), transparent), var(--bg); color: var(--text); line-height: 1.6; }
+
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .container { width: min(100% - 2rem, var(--maxw)); margin-inline: auto; }
+
+    /* =============== GLOBAL UI =============== */
+    .btn { display:inline-flex; align-items:center; gap:.6rem; border:1px solid var(--border); background: linear-gradient(180deg, var(--accent-weak), transparent); color: var(--text); padding:.8rem 1rem; border-radius: calc(var(--radius) + 4px); cursor:pointer; transition:.25s ease; box-shadow: var(--shadow); }
+    .btn:hover { transform: translateY(-2px); }
+    .btn.primary { background: var(--accent); border-color: transparent; color: white; }
+    .btn.ghost { background: transparent; }
+
+    .chip { display:inline-flex; align-items:center; gap:.4rem; border:1px solid var(--border); padding:.35rem .6rem; border-radius:999px; font-size:.85rem; color: var(--muted); }
+    .kbd { border:1px solid var(--border); padding:.15rem .4rem; border-radius:6px; background: linear-gradient(180deg, rgba(255,255,255,.04), transparent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:.85rem; color: var(--muted); }
+
+    .grid { display:grid; gap: 1rem; }
+    .grid.cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .grid.cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid.cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    @media (max-width: 1000px){ .grid.cols-4{grid-template-columns: repeat(2,1fr);} }
+    @media (max-width: 800px){ .grid.cols-3{grid-template-columns: 1fr 1fr;} .grid.cols-2{grid-template-columns: 1fr;} }
+    @media (max-width: 560px){ .grid.cols-3{grid-template-columns: 1fr;} }
+
+    .card { background: linear-gradient(180deg, rgba(255,255,255,.04), transparent), var(--card); border:1px solid var(--border); border-radius: var(--radius-lg); padding: 1.2rem; box-shadow: var(--shadow); }
+    .card.hov { transition: .25s ease; }
+    .card.hov:hover { transform: translateY(-4px); }
+
+    .section { padding: clamp(3rem, 8vw, 5rem) 0; }
+    .section h2 { font-size: clamp(1.6rem, 2.4vw, 2.2rem); letter-spacing: -.02em; }
+    .section p.lead { color: var(--muted); max-width: 65ch; }
+
+    /* =============== APP SHELL =============== */
+    header.site { position: sticky; top: 0; z-index: 100; backdrop-filter: blur(10px); background: linear-gradient(180deg, rgba(0,0,0,.25), rgba(0,0,0,.0)); border-bottom: 1px solid var(--border); }
+    .nav { display:flex; align-items:center; justify-content: space-between; gap:1rem; padding:.8rem 0; }
+    .brand { display:flex; align-items:center; gap:.8rem; font-weight: 800; letter-spacing: .2px; font-size:1.1rem; }
+    .logo { width: 36px; height: 36px; display:grid; place-items:center; border-radius: 12px; background: conic-gradient(from 210deg, var(--accent), transparent 70%); border:1px solid var(--border); box-shadow: var(--shadow); }
+
+    .navlinks { display:flex; gap:.3rem; flex-wrap: wrap; }
+    .navlinks a { padding:.55rem .8rem; border-radius: 10px; border:1px solid transparent; color: var(--muted); }
+    .navlinks a.active, .navlinks a:hover { color: var(--text); background: linear-gradient(180deg, rgba(255,255,255,.04), transparent); border-color: var(--border); text-decoration: none; }
+
+    .tools { display:flex; align-items:center; gap:.5rem; }
+
+    .tool-swatch { width: 22px; height: 22px; border-radius: 6px; border:1px solid var(--border); cursor:pointer; box-shadow: var(--shadow); }
+    .tool-toggle { display:inline-flex; align-items:center; gap:.5rem; border:1px solid var(--border); padding:.45rem .6rem; border-radius: 999px; background: linear-gradient(180deg, rgba(255,255,255,.04), transparent); cursor:pointer; }
+
+    /* =============== HERO =============== */
+    .hero { display:grid; gap:2rem; align-items: center; grid-template-columns: 1.2fr .8fr; }
+    .hero h1 { font-size: clamp(2rem, 4.8vw, 3.6rem); line-height:1.1; letter-spacing:-.02em; }
+    .hero p { color: var(--muted); max-width: 56ch; }
+    .blob { aspect-ratio: 1; width: min(420px, 90%); justify-self: end; border-radius: 50%; background: radial-gradient(circle at 30% 30%, white 0 1px, transparent 2px), conic-gradient(from 180deg at 50% 50%, var(--accent), transparent 70%); filter: blur(12px) saturate(1.2); animation: float 8s ease-in-out infinite; border: 1px dashed var(--border); }
+    @keyframes float { 50% { transform: translateY(-10px) scale(1.02);} }
+    @media (max-width: 900px){ .hero { grid-template-columns: 1fr; } .blob { justify-self: center; } }
+
+    /* =============== SECTIONS =============== */
+    .split { display:grid; grid-template-columns: 1fr 1fr; gap:1.2rem; }
+    @media (max-width: 900px){ .split { grid-template-columns: 1fr; } }
+
+    .meter { height: 10px; background: linear-gradient(180deg, rgba(255,255,255,.06), transparent); border:1px solid var(--border); border-radius: 999px; overflow: hidden; }
+    .meter > span { display:block; height:100%; background: linear-gradient(90deg, var(--accent), transparent); }
+
+    .pill { display:inline-block; padding:.35rem .7rem; border-radius:999px; border:1px solid var(--border); color: var(--muted); font-size:.9rem; margin:.25rem; }
+
+    .project { display:flex; flex-direction: column; gap:.7rem; }
+    .project .thumb { aspect-ratio: 16/10; border-radius: 14px; background: linear-gradient(135deg, var(--accent-weak), transparent); border:1px solid var(--border); position:relative; overflow:hidden; }
+    .project .thumb::after{ content:""; position:absolute; inset:0; background: radial-gradient(400px 160px at -10% -10%, rgba(255,255,255,.25), transparent); mix-blend: overlay; }
+
+    .project .actions { display:flex; gap:.5rem; flex-wrap:wrap; }
+
+    .faq details { border:1px solid var(--border); border-radius: 14px; padding: .8rem 1rem; background: linear-gradient(180deg, rgba(255,255,255,.04), transparent); }
+    .faq summary { cursor:pointer; font-weight: 600; }
+    .faq p { color: var(--muted); }
+
+    .timeline { position: relative; padding-left: 1.4rem; }
+    .timeline::before { content:""; position:absolute; left:.4rem; top:.2rem; bottom:.2rem; width:2px; background: linear-gradient(180deg, var(--accent), transparent); border-radius: 2px; }
+    .timeline-item { position:relative; margin: 0 0 .9rem 0; }
+    .timeline-item::marker { content:none; }
+    .timeline-item::before { content:""; position:absolute; left:-1.05rem; top:.35rem; width:.7rem; height:.7rem; background: var(--accent); border-radius: 999px; box-shadow: 0 0 0 4px var(--accent-weak); }
+
+    .footer { border-top:1px solid var(--border); padding: 2rem 0; color: var(--muted); }
+
+    /* =============== UTILITIES =============== */
+    .hide { display:none !important; }
+    .muted { color: var(--muted); }
+    .center { text-align:center; }
+    .mt-1{margin-top:.5rem} .mt-2{margin-top:1rem} .mt-3{margin-top:1.5rem} .mt-4{margin-top:2rem}
+    .mb-1{margin-bottom:.5rem} .mb-2{margin-bottom:1rem} .mb-3{margin-bottom:1.5rem} .mb-4{margin-bottom:2rem}
+    .pt-0{padding-top:0} .pb-0{padding-bottom:0}
+
+    /* Back-to-top */
+    .toTop { position: fixed; right: 1rem; bottom: 1rem; z-index: 100; opacity: 0; pointer-events: none; transform: translateY(8px); transition: .25s ease; }
+    .toTop.show { opacity: 1; pointer-events: auto; transform: translateY(0); }
+
+    /* Modal */
+    dialog.modal { border:none; border-radius: 20px; padding:0; width:min(720px, 92vw); background: var(--card); color: var(--text); box-shadow: var(--shadow); }
+    dialog::backdrop { backdrop-filter: blur(4px); background: rgba(0,0,0,.4); }
+    .modal-head { display:flex; align-items:center; justify-content: space-between; padding: 1rem 1.2rem; border-bottom: 1px solid var(--border); }
+    .modal-body { padding: 1.2rem; }
+
+  </style>
+</head>
+<body class="theme-dark hue-blue">
+  <header class="site">
+    <div class="container nav">
+      <div class="brand">
+        <span class="logo" aria-hidden="true"></span>
+        <span>Super SPA</span>
+        <span class="chip" title="Press / to search"><span>Frontend</span><span class="kbd">SPA</span></span>
+      </div>
+      <nav class="navlinks" aria-label="Primary">
+        <a href="#home" data-link class="active">Home</a>
+        <a href="#about" data-link>About</a>
+        <a href="#skills" data-link>Skills</a>
+        <a href="#projects" data-link>Projects</a>
+        <a href="#services" data-link>Services</a>
+        <a href="#contact" data-link>Contact</a>
+      </nav>
+      <div class="tools">
+        <div class="chip hide" id="statusChip">Offline</div>
+        <button class="tool-toggle" id="modeToggle" aria-pressed="false" title="Toggle theme (t)">
+          <span>🌙</span><span class="muted">Theme</span>
+        </button>
+        <div class="tool-swatch" data-hue="blue" style="background:hsl(222 100% 62%)" title="Blue"></div>
+        <div class="tool-swatch" data-hue="purple" style="background:hsl(268 83% 67%)" title="Purple"></div>
+        <div class="tool-swatch" data-hue="pink" style="background:hsl(330 87% 67%)" title="Pink"></div>
+        <div class="tool-swatch" data-hue="green" style="background:hsl(160 84% 40%)" title="Green"></div>
+        <div class="tool-swatch" data-hue="orange" style="background:hsl(22 95% 55%)" title="Orange"></div>
+        <div class="tool-swatch" data-hue="teal" style="background:hsl(185 72% 45%)" title="Teal"></div>
+      </div>
+    </div>
+  </header>
+
+  <main id="app" class="container">
+    <!-- =============== HOME =============== -->
+    <section id="home" class="section">
+      <div class="hero">
+        <div>
+          <p class="chip">✨ Single Page Application • HTML + CSS + JS</p>
+          <h1 class="mt-2">Build fast, beautiful websites — <span style="color:var(--accent)">no frameworks</span> needed.</h1>
+          <p class="mt-2">This template shows clean structure, responsive design, dark mode, color themes, hash-based routing, accessible components, and tasteful animations. Copy it as a starter for your own portfolio, landing page, or product site.</p>
+          <div class="mt-3" style="display:flex; gap:.6rem; flex-wrap:wrap">
+            <a class="btn primary" href="#projects" data-link>Explore Projects</a>
+            <button class="btn ghost" id="openModal">Quick Preview</button>
+            <a class="btn" href="#contact" data-link>Hire Me</a>
+          </div>
+          <div class="mt-3" aria-live="polite">
+            <span class="pill">#responsive</span>
+            <span class="pill">#dark-mode</span>
+            <span class="pill">#color-themes</span>
+            <span class="pill">#router</span>
+            <span class="pill">#a11y</span>
+          </div>
+        </div>
+        <div class="blob" aria-hidden="true"></div>
+      </div>
+    </section>
+
+    <!-- =============== ABOUT =============== -->
+    <section id="about" class="section hide">
+      <div class="split">
+        <div class="card">
+          <h2>About Me</h2>
+          <p class="mt-2 lead">Hi! I'm <strong>Your Name</strong>, a frontend developer who loves clean UI, crisp animations, and performance. I build usable interfaces with semantic HTML, modern CSS, and vanilla JS. Replace this copy with your own bio.</p>
+          <ul class="timeline mt-3">
+            <li class="timeline-item card">
+              <strong>2024–2025</strong><br/>
+              Frontend Developer • Freelance — Delivered SPA sites for small businesses.
+            </li>
+            <li class="timeline-item card">
+              <strong>2023</strong><br/>
+              Internship • Built components library and improved accessibility.
+            </li>
+            <li class="timeline-item card">
+              <strong>2022</strong><br/>
+              Started coding journey — HTML, CSS, JS.
+            </li>
+          </ul>
+        </div>
+        <div class="grid cols-2">
+          <div class="card hov">
+            <h3>Highlights</h3>
+            <p class="muted mt-1">Mobile-first, semantic, accessible, and maintainable codebase.</p>
+          </div>
+          <div class="card hov">
+            <h3>Performance</h3>
+            <p class="muted mt-1">Lazy UI effects, GPU-friendly animations, and minimal JS.</p>
+          </div>
+          <div class="card hov">
+            <h3>Tooling</h3>
+            <p class="muted mt-1">Works without build tools. Drop into any hosting.</p>
+          </div>
+          <div class="card hov">
+            <h3>Reuse</h3>
+            <p class="muted mt-1">Components are simple, class-based, and composable.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =============== SKILLS =============== -->
+    <section id="skills" class="section hide">
+      <h2>Skills</h2>
+      <p class="lead mt-1">Core technologies and tools I use on a daily basis.</p>
+      <div class="grid cols-3 mt-3">
+        <div class="card">
+          <div style="display:flex; justify-content: space-between"><strong>HTML</strong><span class="muted">95%</span></div>
+          <div class="meter mt-1" aria-label="HTML skill meter"><span style="width:95%"></span></div>
+        </div>
+        <div class="card">
+          <div style="display:flex; justify-content: space-between"><strong>CSS</strong><span class="muted">92%</span></div>
+          <div class="meter mt-1"><span style="width:92%"></span></div>
+        </div>
+        <div class="card">
+          <div style="display:flex; justify-content: space-between"><strong>JavaScript</strong><span class="muted">88%</span></div>
+          <div class="meter mt-1"><span style="width:88%"></span></div>
+        </div>
+        <div class="card">
+          <div style="display:flex; justify-content: space-between"><strong>Accessibility</strong><span class="muted">85%</span></div>
+          <div class="meter mt-1"><span style="width:85%"></span></div>
+        </div>
+        <div class="card">
+          <div style="display:flex; justify-content: space-between"><strong>Performance</strong><span class="muted">86%</span></div>
+          <div class="meter mt-1"><span style="width:86%"></span></div>
+        </div>
+        <div class="card">
+          <div style="display:flex; justify-content: space-between"><strong>Git</strong><span class="muted">80%</span></div>
+          <div class="meter mt-1"><span style="width:80%"></span></div>
+        </div>
+      </div>
+      <div class="mt-3">
+        <span class="pill">Semantic HTML</span>
+        <span class="pill">Flexbox / Grid</span>
+        <span class="pill">Animations</span>
+        <span class="pill">ARIA</span>
+        <span class="pill">LocalStorage</span>
+        <span class="pill">SPA Routing</span>
+      </div>
+    </section>
+
+    <!-- =============== PROJECTS =============== -->
+    <section id="projects" class="section hide">
+      <div style="display:flex; align-items:end; justify-content:space-between; gap:1rem; flex-wrap:wrap">
+        <div>
+          <h2>Featured Projects</h2>
+          <p class="lead mt-1">A mix of UI components, small apps, and polished layouts.</p>
+        </div>
+        <div style="display:flex; gap:.5rem; align-items:center; flex-wrap:wrap">
+          <span class="muted">Filter:</span>
+          <button class="btn ghost" data-filter="all">All</button>
+          <button class="btn ghost" data-filter="ui">UI</button>
+          <button class="btn ghost" data-filter="app">App</button>
+          <button class="btn ghost" data-filter="site">Site</button>
+        </div>
+      </div>
+      <div class="grid cols-3 mt-3" id="projectGrid">
+        <!-- Project Card Template -->
+      </div>
+    </section>
+
+    <!-- =============== SERVICES =============== -->
+    <section id="services" class="section hide">
+      <h2>Services</h2>
+      <p class="lead mt-1">What I can build and deliver for you.</p>
+      <div class="grid cols-3 mt-3">
+        <div class="card hov">
+          <h3>Landing Pages</h3>
+          <p class="muted mt-1">High-converting, responsive pages with clean visuals and clear messaging.</p>
+          <div class="mt-2">
+            <span class="pill">SEO Ready</span>
+            <span class="pill">A/B Friendly</span>
+          </div>
+        </div>
+        <div class="card hov">
+          <h3>SPA Websites</h3>
+          <p class="muted mt-1">Fast single-page sites with smooth navigation and route handling.</p>
+          <div class="mt-2">
+            <span class="pill">Router</span>
+            <span class="pill">LocalStorage</span>
+          </div>
+        </div>
+        <div class="card hov">
+          <h3>UI Components</h3>
+          <p class="muted mt-1">Reusable cards, modals, accordions, tabs, and form elements.</p>
+          <div class="mt-2">
+            <span class="pill">Accessible</span>
+            <span class="pill">Reusable</span>
+          </div>
+        </div>
+      </div>
+      <div class="faq mt-3 grid cols-2">
+        <details class="card">
+          <summary>Do you handle backend as well?</summary>
+          <p class="mt-1">This template is frontend-only. For backend, connect to APIs or add a server later.</p>
+        </details>
+        <details class="card">
+          <summary>Can I change colors and fonts?</summary>
+          <p class="mt-1">Yes. Use the theme toggle and hue swatches above, or edit the CSS variables in <code>:root</code>.</p>
+        </details>
+      </div>
+    </section>
+
+    <!-- =============== CONTACT =============== -->
+    <section id="contact" class="section hide">
+      <div class="split">
+        <div>
+          <h2>Contact</h2>
+          <p class="lead mt-1">Want something like this? Send a quick message.</p>
+          <form id="contactForm" class="card mt-2" novalidate>
+            <div class="grid cols-2">
+              <label> Name <input required name="name" placeholder="Your name" /></label>
+              <label> Email <input required type="email" name="email" placeholder="you@example.com" /></label>
+            </div>
+            <label class="mt-2"> Message <textarea required name="message" rows="5" placeholder="Tell me about your project..."></textarea></label>
+            <div class="mt-2" style="display:flex; gap:.6rem; align-items:center;">
+              <button class="btn primary" type="submit">Send</button>
+              <span id="formStatus" class="muted" role="status" aria-live="polite"></span>
+            </div>
+          </form>
+          <p class="muted mt-2">This demo validates on the client and shows a success toast. Wire it to your backend or email service to really send.</p>
+        </div>
+        <div class="grid cols-2">
+          <div class="card">
+            <h3>Location</h3>
+            <p class="muted mt-1">Remote • Worldwide</p>
+          </div>
+          <div class="card">
+            <h3>Response time</h3>
+            <p class="muted mt-1">Usually within 24 hours</p>
+          </div>
+          <div class="card">
+            <h3>Preferred stack</h3>
+            <p class="muted mt-1">HTML, CSS, JavaScript (vanilla)</p>
+          </div>
+          <div class="card">
+            <h3>Socials</h3>
+            <p class="muted mt-1"><a href="#">LinkedIn</a> • <a href="#">GitHub</a> • <a href="#">Twitter</a></p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container" style="display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap">
+      <p>© <span id="year"></span> Super SPA. Built with ❤️ using HTML, CSS & JS.</p>
+      <div>
+        <span class="muted">Press</span> <kbd class="kbd">/</kbd> <span class="muted">to search • Press</span> <kbd class="kbd">t</kbd> <span class="muted">to toggle theme</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Back to top -->
+  <button id="toTop" class="btn toTop" title="Back to top">↑ Top</button>
+
+  <!-- Modal -->
+  <dialog id="previewModal" class="modal">
+    <div class="modal-head">
+      <strong>Quick Preview</strong>
+      <button class="btn ghost" id="closeModal">Close</button>
+    </div>
+    <div class="modal-body">
+      <div class="grid cols-3">
+        <div class="card">
+          <h3>Dark Mode</h3>
+          <p class="muted mt-1">Toggle with the button in the header or press <span class="kbd">t</span>.</p>
+        </div>
+        <div class="card">
+          <h3>Color Themes</h3>
+          <p class="muted mt-1">Pick a hue swatch in the header to change accents.</p>
+        </div>
+        <div class="card">
+          <h3>Router</h3>
+          <p class="muted mt-1">Navigation uses hash routes like <code>#projects</code>.</p>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <script>
+    // ========= Simple SPA Router =========
+    const routes = ["home","about","skills","projects","services","contact"];
+    const sections = Object.fromEntries(routes.map(id => [id, document.getElementById(id)]));
+    const navLinks = [...document.querySelectorAll('[data-link]')];
+
+    function setActive(route){
+      routes.forEach(r => sections[r].classList.toggle('hide', r !== route));
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + route));
+      // keep focus visible for accessibility
+      const activeLink = navLinks.find(a => a.classList.contains('active'));
+      if (activeLink) activeLink.setAttribute('aria-current','page');
+      document.title = `${route[0].toUpperCase()+route.slice(1)} — Super SPA`;
+    }
+
+    function resolveRoute(){
+      const route = location.hash.replace('#','') || 'home';
+      setActive(routes.includes(route) ? route : 'home');
+    }
+
+    window.addEventListener('hashchange', resolveRoute);
+    resolveRoute();
+
+    // ========= Theme & Hue =========
+    const root = document.body;
+    const modeToggle = document.getElementById('modeToggle');
+    const hueButtons = [...document.querySelectorAll('.tool-swatch')];
+
+    function applyPrefs(){
+      const theme = localStorage.getItem('theme') || 'dark';
+      const hue = localStorage.getItem('hue') || 'blue';
+      root.classList.toggle('theme-light', theme === 'light');
+      root.classList.toggle('theme-dark', theme === 'dark');
+      root.classList.remove('hue-blue','hue-purple','hue-pink','hue-green','hue-orange','hue-teal');
+      root.classList.add(`hue-${hue}`);
+      modeToggle.setAttribute('aria-pressed', theme === 'light');
+      modeToggle.firstElementChild.textContent = theme === 'light' ? '🌞' : '🌙';
+    }
+    applyPrefs();
+
+    modeToggle.addEventListener('click', () => {
+      const next = root.classList.contains('theme-light') ? 'dark' : 'light';
+      localStorage.setItem('theme', next);
+      applyPrefs();
+    });
+    document.addEventListener('keydown', (e)=>{ if(e.key.toLowerCase()==='t'){ modeToggle.click(); }});
+
+    hueButtons.forEach(btn => btn.addEventListener('click', () => {
+      const hue = btn.dataset.hue;
+      localStorage.setItem('hue', hue);
+      applyPrefs();
+    }));
+
+    // ========= Projects Data + Filter =========
+    const projects = [
+      { id:1, title:'UI Card Kit', type:'ui', tags:['Cards','Components'], desc:'A crisp, accessible card system with variants.', color:'linear-gradient(135deg, var(--accent), transparent)' },
+      { id:2, title:'Todo SPA', type:'app', tags:['App','Storage'], desc:'LocalStorage-based todos with filters.', color:'linear-gradient(135deg, var(--accent-weak), transparent)' },
+      { id:3, title:'Portfolio Site', type:'site', tags:['Site','Responsive'], desc:'A lightning-fast personal portfolio layout.', color:'linear-gradient(135deg, var(--accent), transparent)' },
+      { id:4, title:'Modal & Toasts', type:'ui', tags:['UI','A11y'], desc:'Accessible dialog + toast helpers.', color:'linear-gradient(135deg, var(--accent-weak), transparent)' },
+      { id:5, title:'Weather Widget', type:'app', tags:['App','Widget'], desc:'Fetch API + graceful loading states.', color:'linear-gradient(135deg, var(--accent), transparent)' },
+      { id:6, title:'Landing Page', type:'site', tags:['Site','Marketing'], desc:'Conversion-focused landing with sections.', color:'linear-gradient(135deg, var(--accent-weak), transparent)' },
+    ];
+
+    const grid = document.getElementById('projectGrid');
+    function renderProjects(list){
+      grid.innerHTML = list.map(p => `
+        <article class="card project" data-type="${p.type}">
+          <div class="thumb" style="background:${p.color}"></div>
+          <div>
+            <h3>${p.title}</h3>
+            <p class="muted mt-1">${p.desc}</p>
+          </div>
+          <div class="actions mt-1">
+            ${p.tags.map(t=>`<span class="pill">${t}</span>`).join('')}
+            <button class="btn" data-open="${p.id}">Preview</button>
+          </div>
+        </article>
+      `).join('');
+    }
+    renderProjects(projects);
+
+    document.querySelectorAll('[data-filter]').forEach(btn => btn.addEventListener('click', () => {
+      const type = btn.getAttribute('data-filter');
+      const filtered = type === 'all' ? projects : projects.filter(p => p.type === type);
+      renderProjects(filtered);
+    }));
+
+    // ========= Modal =========
+    const modal = document.getElementById('previewModal');
+    const openModalBtn = document.getElementById('openModal');
+    const closeModalBtn = document.getElementById('closeModal');
+
+    openModalBtn.addEventListener('click', ()=> modal.showModal());
+    closeModalBtn.addEventListener('click', ()=> modal.close());
+
+    grid.addEventListener('click', (e)=>{
+      const id = e.target.closest('button')?.getAttribute('data-open');
+      if(!id) return;
+      const p = projects.find(x=>x.id==id);
+      modal.querySelector('.modal-head strong').textContent = p.title;
+      modal.querySelector('.modal-body').innerHTML = `
+        <div class="card">
+          <h3 class="mb-1">${p.title}</h3>
+          <p class="muted">${p.desc}</p>
+          <div class="thumb mt-2" style="background:${p.color}; height:220px"></div>
+          <div class="mt-2"><span class="pill">Type: ${p.type}</span> ${p.tags.map(t=>`<span class='pill'>${t}</span>`).join('')}</div>
+        </div>`;
+      modal.showModal();
+    });
+
+    // ========= Contact Form (client-side demo) =========
+    const form = document.getElementById('contactForm');
+    const status = document.getElementById('formStatus');
+    form.addEventListener('submit', (e)=>{
+      e.preventDefault();
+      if(!form.reportValidity()) return;
+      const data = Object.fromEntries(new FormData(form).entries());
+      // Simulate sending
+      status.textContent = 'Sending…';
+      setTimeout(()=>{
+        status.textContent = '✅ Message sent (demo). Check console for payload.';
+        console.log('Contact form payload', data);
+        form.reset();
+      }, 700);
+    });
+
+    // ========= Back to Top =========
+    const toTop = document.getElementById('toTop');
+    window.addEventListener('scroll', () => {
+      toTop.classList.toggle('show', window.scrollY > 400);
+    });
+    toTop.addEventListener('click', () => window.scrollTo({top:0, behavior:'smooth'}));
+
+    // ========= Year =========
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // ========= Simple offline status (navigator.onLine) =========
+    const statusChip = document.getElementById('statusChip');
+    function updateStatus(){
+      const online = navigator.onLine;
+      statusChip.textContent = online ? 'Online' : 'Offline';
+      statusChip.classList.toggle('hide', online);
+    }
+    window.addEventListener('online', updateStatus);
+    window.addEventListener('offline', updateStatus);
+    updateStatus();
+
+    // ========= Quick Command Palette (/) =========
+    let searchOpen = false;
+    const palette = document.createElement('div');
+    palette.innerHTML = `
+      <div id="palette" class="card" style="position:fixed; left:50%; top:12%; transform:translateX(-50%); width:min(720px, 92vw); z-index:200; display:none;">
+        <input id="palInput" placeholder="Search sections or actions…" style="width:100%; padding: .9rem 1rem; border-radius: 12px; border:1px solid var(--border); background: linear-gradient(180deg, rgba(255,255,255,.04), transparent); color: var(--text);" />
+        <div id="palList" class="grid cols-2 mt-2"></div>
+      </div>`
+    document.body.appendChild(palette);
+
+    const actions = [
+      ...routes.map(r => ({ label:`Go to ${r}`, run:()=>location.hash = '#' + r })),
+      { label:'Toggle theme', run:()=>modeToggle.click() },
+      { label:'Open preview', run:()=>modal.showModal() }
+    ];
+
+    function showPalette(){
+      const panel = document.getElementById('palette');
+      const list = document.getElementById('palList');
+      const input = document.getElementById('palInput');
+      searchOpen = true; panel.style.display='block'; input.value=''; input.focus();
+      renderList(actions);
+      input.oninput = () => {
+        const q = input.value.toLowerCase();
+        renderList(actions.filter(a => a.label.toLowerCase().includes(q)));
+      }
+      function renderList(items){
+        list.innerHTML = items.map(a => `<button class="btn" data-action="${a.label}">${a.label}</button>`).join('');
+      }
+      list.onclick = (e)=>{
+        const label = e.target.getAttribute('data-action');
+        const act = actions.find(a=>a.label===label);
+        if(act){ act.run(); hidePalette(); }
+      }
+    }
+    function hidePalette(){ searchOpen=false; document.getElementById('palette').style.display='none'; }
+    document.addEventListener('keydown', (e)=>{
+      if(e.key === '/'){ e.preventDefault(); showPalette(); }
+      if(e.key === 'Escape' && searchOpen) hidePalette();
+    });
+  </script>
+</body>
+</html>
